@@ -1,6 +1,41 @@
-version: '3'
+version: '3.7'
+
+networks:
+  grafana:
+
 services:
   grafana:
     image: grafana/grafana
+    environment:
+      - GF_EXPLORE_ENABLED=true
     ports:
       - 3000:3000
+    networks:
+      - grafana
+
+  loki:
+    image: grafana/loki
+    ports:
+      - 3100:3100
+    networks:
+      - grafana
+
+  promtail:
+    image: grafana/promtail
+    ports:
+      - 9080:9080
+    command: -config.file=/etc/promtail/flog-config.yaml
+    volumes:
+      - ./etc/promtail:/etc/promtail
+      - ./var/log:/var/log
+    networks:
+      - grafana
+
+  flog-logger:
+    image: mingrammer/flog
+    command: -n 5 -d 5 -t log -w -o /var/log/flog.log -l
+    volumes:
+      - ./var/log:/var/log
+    networks:
+      - grafana
+
